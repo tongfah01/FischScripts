@@ -1,63 +1,65 @@
---// Fisch Mobile Full UI
---// Mobile + PC Support
---// Auto Cast / Auto Shake / Auto Reel
---// Drag UI / Close UI
+--// Fisch Hub Mobile + PC
+--// F1 Toggle UI
+--// Master Toggle
+--// Auto Cast / Shake / Reel
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
+
 local player = Players.LocalPlayer
 local guiParent = player:WaitForChild("PlayerGui")
 
--- Remove old UI
-if guiParent:FindFirstChild("FischMobileUI") then
-	guiParent.FischMobileUI:Destroy()
+-- Remove old
+if guiParent:FindFirstChild("FischHub") then
+	guiParent.FischHub:Destroy()
 end
 
-----------------------------------------------------
+---------------------------------------------------
 -- SETTINGS
-----------------------------------------------------
+---------------------------------------------------
 
 local AutoCast = false
 local AutoShake = false
 local AutoReel = false
+local EverythingEnabled = false
 
-----------------------------------------------------
+---------------------------------------------------
 -- GUI
-----------------------------------------------------
+---------------------------------------------------
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "FischMobileUI"
+gui.Name = "FischHub"
 gui.ResetOnSpawn = false
 gui.Parent = guiParent
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0,310,0,260)
-frame.Position = UDim2.new(0.5,-155,0.5,-130)
-frame.BackgroundColor3 = Color3.fromRGB(28,28,28)
+frame.Size = UDim2.new(0,320,0,330)
+frame.Position = UDim2.new(0.5,-160,0.5,-165)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
 frame.BorderSizePixel = 0
 frame.Active = true
 frame.Parent = gui
 
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0,14)
 
-----------------------------------------------------
--- Title
-----------------------------------------------------
+---------------------------------------------------
+-- TITLE
+---------------------------------------------------
 
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1,-50,0,40)
 title.Position = UDim2.new(0,15,0,0)
 title.BackgroundTransparency = 1
-title.Text = "Fisch Mobile Hub"
+title.Text = "Fisch Hub"
 title.Font = Enum.Font.GothamBold
 title.TextSize = 22
 title.TextColor3 = Color3.new(1,1,1)
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = frame
 
-----------------------------------------------------
--- Close Button
-----------------------------------------------------
+---------------------------------------------------
+-- CLOSE
+---------------------------------------------------
 
 local close = Instance.new("TextButton")
 close.Size = UDim2.new(0,35,0,35)
@@ -71,20 +73,20 @@ close.Parent = frame
 
 Instance.new("UICorner", close).CornerRadius = UDim.new(1,0)
 
-----------------------------------------------------
--- Helper
-----------------------------------------------------
+---------------------------------------------------
+-- TOGGLE CREATOR
+---------------------------------------------------
 
-local function createToggle(name, posY)
+local function createToggle(text, y)
 
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(0,270,0,48)
-	btn.Position = UDim2.new(0.5,-135,0,posY)
+	btn.Size = UDim2.new(0,280,0,48)
+	btn.Position = UDim2.new(0.5,-140,0,y)
 	btn.BackgroundColor3 = Color3.fromRGB(55,55,55)
 	btn.TextColor3 = Color3.new(1,1,1)
 	btn.Font = Enum.Font.GothamBold
 	btn.TextSize = 19
-	btn.Text = name .. " : OFF"
+	btn.Text = text .. " : OFF"
 	btn.Parent = frame
 
 	Instance.new("UICorner", btn).CornerRadius = UDim.new(0,10)
@@ -92,130 +94,131 @@ local function createToggle(name, posY)
 	return btn
 end
 
-local castBtn = createToggle("Auto Cast", 60)
-local shakeBtn = createToggle("Auto Shake", 120)
-local reelBtn = createToggle("Auto Reel", 180)
+---------------------------------------------------
+-- BUTTONS
+---------------------------------------------------
 
-----------------------------------------------------
+local masterBtn = createToggle("MASTER", 55)
+local castBtn = createToggle("Auto Cast", 115)
+local shakeBtn = createToggle("Auto Shake", 175)
+local reelBtn = createToggle("Auto Reel", 235)
+
+---------------------------------------------------
+-- UPDATE UI
+---------------------------------------------------
+
+local function updateButton(btn, text, state)
+
+	if state then
+		btn.Text = text .. " : ON"
+		btn.BackgroundColor3 = Color3.fromRGB(60,170,90)
+	else
+		btn.Text = text .. " : OFF"
+		btn.BackgroundColor3 = Color3.fromRGB(55,55,55)
+	end
+end
+
+---------------------------------------------------
+-- MASTER TOGGLE
+---------------------------------------------------
+
+masterBtn.MouseButton1Click:Connect(function()
+
+	EverythingEnabled = not EverythingEnabled
+
+	AutoCast = EverythingEnabled
+	AutoShake = EverythingEnabled
+	AutoReel = EverythingEnabled
+
+	updateButton(masterBtn,"MASTER",EverythingEnabled)
+	updateButton(castBtn,"Auto Cast",AutoCast)
+	updateButton(shakeBtn,"Auto Shake",AutoShake)
+	updateButton(reelBtn,"Auto Reel",AutoReel)
+end)
+
+---------------------------------------------------
 -- AUTO CAST
-----------------------------------------------------
+---------------------------------------------------
 
 castBtn.MouseButton1Click:Connect(function()
 
 	AutoCast = not AutoCast
+	updateButton(castBtn,"Auto Cast",AutoCast)
 
-	if AutoCast then
+	task.spawn(function()
 
-		castBtn.Text = "Auto Cast : ON"
-		castBtn.BackgroundColor3 = Color3.fromRGB(60,170,90)
+		while AutoCast do
 
-		task.spawn(function()
+			mouse1press()
 
-			while AutoCast do
+			task.wait(1.1)
 
-				-- จำลองกดค้าง
-				mouse1press()
+			mouse1release()
 
-				task.wait(1.1)
-
-				mouse1release()
-
-				task.wait(2.2)
-			end
-		end)
-
-	else
-
-		castBtn.Text = "Auto Cast : OFF"
-		castBtn.BackgroundColor3 = Color3.fromRGB(55,55,55)
-	end
+			task.wait(2)
+		end
+	end)
 end)
 
-----------------------------------------------------
+---------------------------------------------------
 -- AUTO SHAKE
-----------------------------------------------------
+---------------------------------------------------
 
 shakeBtn.MouseButton1Click:Connect(function()
 
 	AutoShake = not AutoShake
+	updateButton(shakeBtn,"Auto Shake",AutoShake)
 
-	if AutoShake then
+	task.spawn(function()
 
-		shakeBtn.Text = "Auto Shake : ON"
-		shakeBtn.BackgroundColor3 = Color3.fromRGB(60,170,90)
+		while AutoShake do
 
-		task.spawn(function()
+			for _,v in pairs(player.PlayerGui:GetDescendants()) do
 
-			while AutoShake do
+				if v:IsA("TextButton")
+				or v:IsA("ImageButton") then
 
-				local shakeButton = nil
+					local lower = string.lower(v.Name)
 
-				for _,v in pairs(player.PlayerGui:GetDescendants()) do
+					if string.find(lower,"shake") then
 
-					if v:IsA("ImageButton")
-					or v:IsA("TextButton") then
-
-						if string.find(string.lower(v.Name),"shake")
-						or string.find(string.lower(v.Text),"shake") then
-
-							shakeButton = v
-							break
-						end
+						pcall(function()
+							v:Activate()
+						end)
 					end
 				end
-
-				if shakeButton then
-					pcall(function()
-						shakeButton:Activate()
-					end)
-				end
-
-				task.wait(0.05)
 			end
-		end)
 
-	else
-
-		shakeBtn.Text = "Auto Shake : OFF"
-		shakeBtn.BackgroundColor3 = Color3.fromRGB(55,55,55)
-	end
+			task.wait(0.05)
+		end
+	end)
 end)
 
-----------------------------------------------------
+---------------------------------------------------
 -- AUTO REEL
-----------------------------------------------------
+---------------------------------------------------
 
 reelBtn.MouseButton1Click:Connect(function()
 
 	AutoReel = not AutoReel
+	updateButton(reelBtn,"Auto Reel",AutoReel)
 
-	if AutoReel then
+	task.spawn(function()
 
-		reelBtn.Text = "Auto Reel : ON"
-		reelBtn.BackgroundColor3 = Color3.fromRGB(60,170,90)
+		while AutoReel do
 
-		task.spawn(function()
+			mouse1press()
+			task.wait(0.05)
+			mouse1release()
 
-			while AutoReel do
-
-				mouse1press()
-				task.wait(0.04)
-				mouse1release()
-
-				task.wait(0.04)
-			end
-		end)
-
-	else
-
-		reelBtn.Text = "Auto Reel : OFF"
-		reelBtn.BackgroundColor3 = Color3.fromRGB(55,55,55)
-	end
+			task.wait(0.05)
+		end
+	end)
 end)
 
-----------------------------------------------------
+---------------------------------------------------
 -- CLOSE
-----------------------------------------------------
+---------------------------------------------------
 
 close.MouseButton1Click:Connect(function()
 
@@ -226,19 +229,33 @@ close.MouseButton1Click:Connect(function()
 	gui:Destroy()
 end)
 
-----------------------------------------------------
+---------------------------------------------------
+-- F1 SHOW/HIDE UI
+---------------------------------------------------
+
+UIS.InputBegan:Connect(function(input,gp)
+
+	if gp then return end
+
+	if input.KeyCode == Enum.KeyCode.F1 then
+
+		frame.Visible = not frame.Visible
+	end
+end)
+
+---------------------------------------------------
 -- DRAG SYSTEM
-----------------------------------------------------
+---------------------------------------------------
 
 local dragging = false
+local dragInput
 local dragStart
 local startPos
-local dragInput
 
 frame.InputBegan:Connect(function(input)
 
-	if input.UserInputType == Enum.UserInputType.Touch
-	or input.UserInputType == Enum.UserInputType.MouseButton1 then
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
 
 		dragging = true
 		dragStart = input.Position
@@ -255,8 +272,8 @@ end)
 
 frame.InputChanged:Connect(function(input)
 
-	if input.UserInputType == Enum.UserInputType.Touch
-	or input.UserInputType == Enum.UserInputType.MouseMovement then
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
 
 		dragInput = input
 	end
@@ -264,7 +281,7 @@ end)
 
 UIS.InputChanged:Connect(function(input)
 
-	if dragging and input == dragInput then
+	if input == dragInput and dragging then
 
 		local delta = input.Position - dragStart
 
